@@ -13,8 +13,13 @@ def main():
     while True:
         ret, frame = cap.read()
 
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        cv2.imshow('frame', gray)
+        blur = cv2.GaussianBlur(
+            frame,
+            ksize=(5,5),
+            sigmaX=1,
+            sigmaY=1
+        )
+        cv2.imshow('frame', blur)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
