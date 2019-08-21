@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 def main():
-    print("Beginning program execution...")
+    print("Beginning sample cvt program...")
 
     cap = cv2.VideoCapture(0)
 
