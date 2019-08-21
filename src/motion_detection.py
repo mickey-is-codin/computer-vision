@@ -16,6 +16,7 @@ def main():
 
     while True:
         ret, frame = cap.read()
+        text = "Unoccupied"
 
         frame = imutils.resize(frame, width=500)
         gray  = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
