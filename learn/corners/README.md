@@ -14,7 +14,7 @@ Using Taylor Expansion:
 `I` is a given directional image derivative.
 
 Finally, the likelihood that a window contains a corner is given by:
-![alt-text](imaages/r_equation.png)
+![alt-text](images/r_equation.png)
 
 det(R) = λ1λ2
 trace(M) = λ1 + λ2
