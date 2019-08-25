@@ -1,10 +1,17 @@
+import sys
+
 import numpy as np
 import cv2
 
 def main():
-    print('Beginning program...\n')
 
-    filename = 'images/chess.png'
+    if len(sys.argv) == 1:
+        filename = 'images/chess.png'
+    elif len(sys.argv) == 2:
+        filename = sys.argv[1]
+
+    print('Detecting corners for {}...\n'.format(filename))
+
     img = cv2.imread(filename)
     result = img
 
