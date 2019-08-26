@@ -11,10 +11,23 @@ def main():
     while True:
         ret, frame = cap.read()
 
-        # Operate on frame here
+        # Harris Algorithm Logic
+        result = frame
 
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = np.float32(gray)
 
-        cv2.imshow('frame', frame)
+        harris_mask = cv2.cornerHarris(
+            src=gray,
+            blockSize=3,
+            ksize=5,
+            k=0.04
+        )
+
+        harris_mask = cv2.dilate(harris_mask,None)
+        result[harris_mask > 0.01 * harris_mask.max()] = [0, 0, 255]
+
+        cv2.imshow('Harris Algorithm Corners', result)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
