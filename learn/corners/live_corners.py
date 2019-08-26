@@ -19,8 +19,8 @@ def main():
 
         harris_mask = cv2.cornerHarris(
             src=gray,
-            blockSize=3,
-            ksize=5,
+            blockSize=10,
+            ksize=15,
             k=0.04
         )
 
