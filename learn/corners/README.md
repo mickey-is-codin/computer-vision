@@ -23,3 +23,12 @@ trace(M) = λ1 + λ2
 The eigenvalues of M can give clear probabilities of corners. The eigenvalues both being large means a corner is likely, one being much larger than the other means a horizontal or vertical edge, and both being small means you have a flat region.
 
 When the eigenvalues are both large that means that `E(u,v)` is increasing in all directions.
+
+### Parameters
+`src`: The image to apply the algorithm to
+
+`blockSize`: Size of the neighborhood considered for corner detection
+
+`ksize`: Size of the kernel for the moving window (u, v)
+
+`k`: The free parameter. Found in the R equation. Larger k = less false corners, but smaller k = more corners.
