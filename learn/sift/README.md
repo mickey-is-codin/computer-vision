@@ -1,0 +1,3 @@
+# SIFT (Scale-Invariant Feature Transform)
+
+Apparently this algorithm was excluded from OpenCV3...
