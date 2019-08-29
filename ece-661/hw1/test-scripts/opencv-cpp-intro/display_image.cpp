@@ -31,5 +31,11 @@ int main(int argc, char ** argv) {
         return EXIT_FAILURE;
     }
 
+    string window_title = "User Image: " + img_path;
+    namedWindow(window_title, WINDOW_AUTOSIZE);
+    imshow(window_title, input_img);
+
+    waitKey(0);
+
     return EXIT_SUCCESS;
 }
