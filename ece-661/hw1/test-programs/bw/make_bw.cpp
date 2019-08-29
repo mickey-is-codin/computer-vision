@@ -35,7 +35,7 @@ int main(int argc, char ** argv) {
     cvtColor(input_img, gray_img, COLOR_BGR2GRAY);
 
     string window_title = "User Image: " + img_path;
-    namedWindow(window_title, WINDOW_AUTOSIZE);
+    namedWindow(window_title);
     imshow(window_title, gray_img);
 
     waitKey(0);
