@@ -1,7 +1,7 @@
 CC=g++
 
-EXEC=bin/make-bw
-SRC_C=make_bw.cpp
+EXEC=bin/detect-edges
+SRC_C=detect_edges.cpp
 
 CV_LINK=`pkg-config --cflags --libs opencv`
 DEBUG=-D DEBUG
