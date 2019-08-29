@@ -37,29 +37,41 @@ int main(int argc, char ** argv) {
     output_img = input_img.clone();
 
     // Get image resolution
-    int im_x, im_y;
-    im_x = output_img.cols;
-    im_y = output_img.rows;
+    int img_x, img_y;
+    img_x = output_img.cols;
+    img_y = output_img.rows;
 
 #ifdef DEBUG
-    cout << "x size: " << im_x << "\ty size: " << im_y << endl;
+    cout << "x size: " << img_x << "\ty size: " << img_y << endl;
 #endif
 
+    // Define cv2::Point2i's for start and end of line
+    Point2i start(0,0);
+    Point2i end(100,100);
+
     // Drawing
-    // line(
-    //     output_img,         // source
-    //     (0,0),
-    //     (),
-    //     color,
-    //     thickness
-    // )
+
+    // Create a line
+    line(
+        output_img,         // source
+        start,              // Start (Point2i)
+        end,                // End (Point2i)
+        Scalar(0,255,0),    // Color
+        2                   // Line thickness
+    );
+
+    circle(
+        output_img,
+        Point2i(int(img_x/2), int(img_y/2)),
+        5 * i,
+        Scalar(0,255,0),
+        2
+    );
 
     // Create window and show image
     string window_title = "User Image: " + img_path;
     namedWindow(window_title);
     imshow(window_title, output_img);
-
-    waitKey(0);
 
     return EXIT_SUCCESS;
 }
