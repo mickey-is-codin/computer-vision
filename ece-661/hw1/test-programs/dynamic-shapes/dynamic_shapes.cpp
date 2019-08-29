@@ -34,17 +34,16 @@ int main(int argc, char ** argv) {
         cout << "Failed to open specified image" << endl;
         return EXIT_FAILURE;
     }
-    output_img = input_img.clone();
-
-    // Create window and show image
-    string window_title = "User Image: " + img_path;
-    namedWindow(window_title);
-
-    Point2i center(int(output_img.cols/2), int(output_img.rows/2));
 
     // Updating
-    for (int i=1; i<255; i+=2) {
-        cout << i << endl;
+    int i = 0;
+    while (1) {
+
+        i += 1;
+
+        output_img = input_img.clone();
+        Point2i center(int(output_img.cols/2), int(output_img.rows/2));
+
         circle(
             output_img,
             center,
@@ -52,11 +51,9 @@ int main(int argc, char ** argv) {
             Scalar(0,255,0),
             2
         );
-        imshow(window_title, output_img);
-        if (waitKey(1000) & 0xFF) {
-            cout << "breaking" << endl;
-            break;
-        }
+        imshow("window_title", output_img);
+
+        waitKey(1000);
     }
 
     return EXIT_SUCCESS;
