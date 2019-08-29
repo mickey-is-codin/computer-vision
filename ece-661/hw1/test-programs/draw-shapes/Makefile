@@ -7,7 +7,7 @@ CV_LINK=`pkg-config --cflags --libs opencv`
 DEBUG=-D DEBUG
 VAL=valgrind --leak-check=yes
 
-INPUT_IMG=input/iris.jpg
+INPUT_IMG=input/bird.jpg
 
 $(EXEC) : $(SRC_C)
 	$(CC) -o $(EXEC) $(SRC_C) $(CV_LINK)
