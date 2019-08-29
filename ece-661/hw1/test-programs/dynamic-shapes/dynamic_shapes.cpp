@@ -1,0 +1,63 @@
+#include <iostream>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <cstdlib>
+
+using namespace std;
+using namespace cv;
+
+int main(int argc, char ** argv) {
+
+    if (argc != 2) {
+        cout << "Usage: make-bw image" << endl;
+        return EXIT_FAILURE;
+    }
+
+    cout << "\nConverting image...";
+
+    // Get the input image from command line argument
+    string img_path = argv[1];
+    cout << img_path << endl;
+
+#ifdef DEBUG
+    cout << "=Compiled in debug mode=" << endl;
+#endif
+
+    // Declare images
+    Mat input_img, output_img;
+
+    // Set the input image and check for opening errors
+    input_img = imread(img_path, CV_LOAD_IMAGE_COLOR);
+    if (!input_img.data) {
+        cout << "Failed to open specified image" << endl;
+        return EXIT_FAILURE;
+    }
+    output_img = input_img.clone();
+
+    // Create window and show image
+    string window_title = "User Image: " + img_path;
+    namedWindow(window_title);
+
+    Point2i center(int(output_img.cols/2), int(output_img.rows/2));
+
+    // Updating
+    for (int i=1; i<255; i+=2) {
+        cout << i << endl;
+        circle(
+            output_img,
+            center,
+            5 * i,
+            Scalar(0,255,0),
+            2
+        );
+        imshow(window_title, output_img);
+        if (waitKey(1000) & 0xFF) {
+            cout << "breaking" << endl;
+            break;
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
