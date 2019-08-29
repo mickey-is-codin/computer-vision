@@ -36,10 +36,21 @@ int main(int argc, char ** argv) {
     }
 
     // Updating
-    int i = 0;
+    int count = 0;
+    int radius = 0;
     while (1) {
 
-        i += 1;
+        if (count < 200) {
+            count++;
+        } else {
+            count = 1;
+        }
+
+        if (count > 100) {
+            radius--;
+        } else {
+            radius++;
+        }
 
         output_img = input_img.clone();
         Point2i center(int(output_img.cols/2), int(output_img.rows/2));
@@ -47,13 +58,13 @@ int main(int argc, char ** argv) {
         circle(
             output_img,
             center,
-            5 * i,
+            radius,
             Scalar(0,255,0),
             2
         );
         imshow("window_title", output_img);
 
-        waitKey(1000);
+        waitKey(10);
     }
 
     return EXIT_SUCCESS;
