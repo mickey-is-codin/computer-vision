@@ -1,3 +1,3 @@
-# OpenCV Motion Detection Project
+# OpenCV and Image Processing Repository
 
-Building this out as a small proof of concept for a project at work.
+Using this for any learning or projects involving OpenCV until I have enough knowledge to make repos for each specific project.
