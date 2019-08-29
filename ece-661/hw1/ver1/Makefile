@@ -5,7 +5,7 @@ SRC_C=hw1.cpp
 
 CV_LINK=`pkg-config --cflags --libs opencv`
 DEBUG=-D DEBUG
-VAL=valgrind --leak-check=yes
+VAL=valgrind --leak-check=yes --leak-check=full
 
 INPUT_IMG=input/adams1.jpg
 OUTPUT_IMG=results/adams1_fixed.jpg
