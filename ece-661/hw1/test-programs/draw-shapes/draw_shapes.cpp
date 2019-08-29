@@ -45,14 +45,20 @@ int main(int argc, char ** argv) {
     cout << "x size: " << im_x << "\ty size: " << im_y << endl;
 #endif
 
+    // Top left = 0,0
+    // y-coordinate = how far down
+    // x-coordinate = how far right
+    Point2i start(0, 100);
+    Point2i end(100, 100);
+
     // Drawing
-    // line(
-    //     output_img,         // source
-    //     (0,0),
-    //     (),
-    //     color,
-    //     thickness
-    // )
+    line(
+        output_img,         // source
+        start,
+        end,
+        (255,0,0),
+        5
+    );
 
     // Create window and show image
     string window_title = "User Image: " + img_path;
