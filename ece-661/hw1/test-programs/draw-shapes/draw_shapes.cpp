@@ -63,7 +63,7 @@ int main(int argc, char ** argv) {
     circle(
         output_img,
         Point2i(int(img_x/2), int(img_y/2)),
-        5 * i,
+        5,
         Scalar(0,255,0),
         2
     );
