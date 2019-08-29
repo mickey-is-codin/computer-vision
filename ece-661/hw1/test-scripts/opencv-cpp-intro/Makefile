@@ -1,6 +1,6 @@
 CC=g++
 
-EXEC=display-image
+EXEC=image-display
 SRC_C=display_image.cpp
 
 CV_LINK=`pkg-config --cflags --libs opencv`
