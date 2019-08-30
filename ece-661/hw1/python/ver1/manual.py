@@ -17,14 +17,6 @@ def main():
     print('Input image is a {}-channel {}x{} image'
         .format(image_info['channels'], image_info['width'], image_info['height']))
 
-    # Conduit Box
-    # im_rect_pts = {
-    #     'ul' : (182, 55),
-    #     'ur' : (316, 96),
-    #     'bl' : (154, 440),
-    #     'br' : (296, 442)
-    # }
-
     im_rect_pts = {
         'ul' : (450, 55),
         'ur' : (760, 175),
@@ -53,10 +45,18 @@ def main():
              B
     '''
 
+    input_im_array = np.array(input_img)
+    output_im_array = np.zeros((2 * image_info['height'], 2 * image_info['width'], 3))
+    print(input_im_array.shape, output_im_array.shape)
+
     vec_a = np.cross(im_corner_vectors['bl'],im_corner_vectors['ul'])
     vec_b = np.cross(im_corner_vectors['bl'],im_corner_vectors['br'])
     vec_c = np.cross(im_corner_vectors['br'],im_corner_vectors['ur'])
     vec_d = np.cross(im_corner_vectors['ul'],im_corner_vectors['ur'])
+    print('Vector A: {}, shape: {}'.format(vec_a, vec_a.shape))
+    print('Vector B: {}, shape: {}'.format(vec_b, vec_b.shape))
+    print('Vector C: {}, shape: {}'.format(vec_c, vec_c.shape))
+    print('Vector D: {}, shape: {}'.format(vec_d, vec_d.shape))
 
     ver_van_pt = np.cross(vec_a, vec_c)
     hor_van_pt = np.cross(vec_b, vec_d)
@@ -67,12 +67,32 @@ def main():
     # Manual
     homography = np.identity(len(van_line))
     homography[-1,:] = van_line
+    homography = np.array([
+        [1, 0, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ]).astype(np.float32)
+    print('Original scene warped by homography: \n{}, shape: {}'.format(homography, homography.shape))
 
     h_inv = np.linalg.inv(homography)
     h_tran_inv = np.transpose(np.linalg.inv(homography))
     h_inv_tran = np.linalg.inv(np.transpose(homography))
+    print('Inverse Homography: \n{}'.format(h_inv))
+    print('Transposed Inverse Homography: \n{}'.format(h_tran_inv))
 
     h_attempts = [homography, h_inv, h_tran_inv, h_inv_tran]
+
+    for y in range(image_info['height']):
+        for x in range(image_info['width']):
+            old_coords = [y, x, 1]
+            new_coords = np.matmul(homography, old_coords)
+
+            if x < 10 and y == 0:
+                #print('New Coords: {}, Old Coords{}'.format((int(new_coords[0]), int(new_coords[1])),(y,x)))
+                print('Setting location ({}, {}) on new image to {}'
+                    .format(int(new_coords[0]), int(new_coords[1]), input_im_array[y,x]))
+
+            output_im_array[int(new_coords[0]), int(new_coords[1])] = input_im_array[y,x]
 
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
@@ -81,13 +101,7 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    output_shape = (w*2, h*2)
-    output_img = cv2.warpPerspective(
-        input_img,
-        M=homography,
-        dsize=output_shape
-    )
-
+    output_img = output_im_array
     cv2.imshow('Output Image', output_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
@@ -148,8 +162,8 @@ def plot_im_corners(input_img, rect_points):
 def get_image_info(input_img):
 
     image_info = {
-        'width':  input_img.shape[0],
-        'height': input_img.shape[1],
+        'height':  input_img.shape[0],
+        'width': input_img.shape[1],
         'channels': input_img.shape[2]
     }
 
