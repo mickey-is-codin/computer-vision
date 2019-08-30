@@ -17,30 +17,73 @@ def main():
     print('Input image is a {}-channel {}x{} image'
         .format(image_info['channels'], image_info['width'], image_info['height']))
 
-    im_ul_crnr = (135,90)
-    im_ur_crnr = (400, 100)
-    im_bl_crnr = ()
-    im_br_crnr = ()
+    im_rect = {
+        'im_ul_crnr' : (182,55),
+        'im_ur_crnr' : (316,96),
+        'im_bl_crnr' : (154,440),
+        'im_br_crnr' : (296,442),
+    }
 
-    cv2.circle(
-        input_img,
-        center=im_ul_crnr,
-        radius=5,
-        color=(255,0,0),
-        thickness=2
-    )
+    plot_im_corners(input_img, im_rect)
+    plot_im_edges(input_img, im_rect)
 
-    cv2.circle(
-        input_img,
-        center=im_ur_crnr,
-        radius=5,
-        color=(255,0,0),
-        thickness=2
-    )
+    # Get the dot product to find the angle b/wn
 
     cv2.imshow('Input Image', input_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def plot_im_edges(input_img, rect_points):
+
+    cv2.line(
+        input_img,
+        pt1=rect_points['im_bl_crnr'],
+        pt2=rect_points['im_ul_crnr'],
+        color=(0,0,255),
+        thickness=2
+    )
+
+    cv2.line(
+        input_img,
+        pt1=rect_points['im_bl_crnr'],
+        pt2=rect_points['im_br_crnr'],
+        color=(0,0,255),
+        thickness=2
+    )
+
+def plot_im_corners(input_img, rect_points):
+
+    cv2.circle(
+        input_img,
+        center=rect_points['im_ul_crnr'],
+        radius=3,
+        color=(255,0,0),
+        thickness=3
+    )
+
+    cv2.circle(
+        input_img,
+        center=rect_points['im_ur_crnr'],
+        radius=3,
+        color=(255,0,0),
+        thickness=3
+    )
+
+    cv2.circle(
+        input_img,
+        center=rect_points['im_bl_crnr'],
+        radius=3,
+        color=(255,0,0),
+        thickness=3
+    )
+
+    cv2.circle(
+        input_img,
+        center=rect_points['im_br_crnr'],
+        radius=3,
+        color=(255,0,0),
+        thickness=3
+    )
 
 
 def get_image_info(input_img):
