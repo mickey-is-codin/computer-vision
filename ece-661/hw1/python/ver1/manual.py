@@ -74,30 +74,6 @@ def main():
 
     h_attempts = [homography, h_inv, h_tran_inv, h_inv_tran]
 
-    # OpenCV Auto
-    new_origin = [400, 300]
-    x_scale = 450
-    y_scale = 300
-
-    image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
-    world_points = np.float32([
-        new_origin,
-        [new_origin[0]+x_scale, new_origin[1]],
-        [new_origin[0], new_origin[1]+y_scale],
-        [new_origin[0]+x_scale, new_origin[1]+y_scale]
-    ])
-    auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
-    auto_homography = cv2.findHomography(image_points, world_points)
-
-    translate_h = np.array([
-        [1, 0, 100],
-        [0, 1, 100],
-        [0, 0, 1]
-    ]).astype(np.float32)
-
-    w = input_img.shape[1]
-    h = input_img.shape[0]
-
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
@@ -108,12 +84,7 @@ def main():
     output_shape = (w*2, h*2)
     output_img = cv2.warpPerspective(
         input_img,
-        M=auto_perspective,
-        dsize=output_shape
-    )
-    output_img = cv2.warpPerspective(
-        output_img,
-        M=translate_h,
+        M=homography,
         dsize=output_shape
     )
 
