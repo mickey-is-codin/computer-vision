@@ -66,26 +66,7 @@ def main():
     cv2.destroyAllWindows()
 
     # Correspondences
-    m1 = np.zeros((len(image_points)*2, len(image_points)*2))
-    row = 0
-    for i in range(len(image_points)):
-        m1[row:row+2, :] = build_p(image_points[i], world_points[i])
-        row += 2
-    print('Shape of M1 Matrix: {}'.format(m1.shape))
 
-    m2 = np.zeros(len(image_points) * 2)
-    for ix, pt in enumerate(world_points):
-        m2[ix]   = pt[0]
-        m2[ix+4] = pt[1]
-    print(m2)
-
-    #m1_inv_t = np.linalg.inv( np.matmul( np.transpose(m1),m1 ) )
-    #m1_m2 = np.matmul( np.transpose(m1),m2 )
-    #print(m1_inv_t.shape)
-    #print(m1_m2.shape)
-    homography = np.matmul( np.linalg.inv( np.matmul(np.transpose(m1),m1) ),( np.matmul(np.transpose(m1),m2) ))
-    homography = np.append(homography, 1)
-    homography = homography.reshape(3,3)
 
     w = input_img.shape[1]
     h = input_img.shape[0]
