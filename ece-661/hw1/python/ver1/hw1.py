@@ -74,34 +74,17 @@ def main():
 
     h_attempts = [homography, h_inv, h_tran_inv, h_inv_tran]
 
-    shear_angle  = 15
-    rotate_angle = 30
-
-    tan_phi = np.tan(shear_angle)
-
-    cos_theta = np.cos(rotate_angle)
-    sin_theta = np.sin(rotate_angle)
-
-    test_h = np.array([
-        [1, tan_phi, 0],
-        [0, 1, 0],
-        [0, 0, 1]
-    ]).astype(np.float32)
-
-    print('Test Homography: \n{}'.format(test_h))
-    # print('Calculated Homography: \n{}'.format(homography))
-    # print('Inverse: \n{}'.format(h_inv))
-    # print('Inverse of Transpose: \n{}'.format(h_inv_tran))
-    # print('Transpose of Inverse: \n{}'.format(h_tran_inv))
-
     # OpenCV Auto
-    # Note: I believe this also removes the affine transformation
+    new_origin = [400, 300]
+    x_scale = 450
+    y_scale = 300
+
     image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
     world_points = np.float32([
-        [400, 400],
-        [400+400, 400],
-        [400, 400+300],
-        [400+400, 400+300]
+        new_origin,
+        [new_origin[0]+x_scale, new_origin[1]],
+        [new_origin[0], new_origin[1]+y_scale],
+        [new_origin[0]+x_scale, new_origin[1]+y_scale]
     ])
     auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
     auto_homography = cv2.findHomography(image_points, world_points)
