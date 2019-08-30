@@ -35,7 +35,7 @@ def main():
     for k, v in im_corner_vectors.items():
         print('{}: {}, shape: {}'.format(k,v, v.shape))
 
-    new_origin = [400, 300]
+    new_origin = [500, 400]
     x_scale = 500
     y_scale = 300
 
@@ -53,15 +53,6 @@ def main():
     auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
     auto_homography = cv2.findHomography(image_points, world_points)
 
-    translate_h = np.array([
-        [1, 0, 100],
-        [0, 1, 100],
-        [0, 0, 1]
-    ]).astype(np.float32)
-
-    w = input_img.shape[1]
-    h = input_img.shape[0]
-
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
@@ -69,15 +60,13 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+    w = input_img.shape[1]
+    h = input_img.shape[0]
+
     output_shape = (w*2, h*2)
     output_img = cv2.warpPerspective(
         input_img,
         M=auto_perspective,
-        dsize=output_shape
-    )
-    output_img = cv2.warpPerspective(
-        output_img,
-        M=translate_h,
         dsize=output_shape
     )
 
