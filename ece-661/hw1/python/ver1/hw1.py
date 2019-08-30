@@ -28,6 +28,7 @@ def main():
     plot_im_edges(input_img, im_rect)
 
     # Get the dot product to find the angle b/wn
+    # Math this out in notebook first
 
     cv2.imshow('Input Image', input_img)
     cv2.waitKey(0)
@@ -35,7 +36,7 @@ def main():
 
 def plot_im_edges(input_img, rect_points):
 
-    cv2.line(
+    line_1 = cv2.line(
         input_img,
         pt1=rect_points['im_bl_crnr'],
         pt2=rect_points['im_ul_crnr'],
@@ -43,7 +44,7 @@ def plot_im_edges(input_img, rect_points):
         thickness=2
     )
 
-    cv2.line(
+    line_2 = cv2.line(
         input_img,
         pt1=rect_points['im_bl_crnr'],
         pt2=rect_points['im_br_crnr'],
