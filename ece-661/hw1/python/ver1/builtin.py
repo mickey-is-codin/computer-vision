@@ -52,6 +52,9 @@ def main():
     ])
     auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
     auto_homography = cv2.findHomography(image_points, world_points)
+    print('Original scene warped by homography: \n{}'.format(auto_homography))
+    print(type(auto_homography))
+    print('Shape: {}'.format(auto_homography[0].shape))
 
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
