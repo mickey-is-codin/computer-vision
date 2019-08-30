@@ -31,6 +31,19 @@ def main():
         'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1], 1]))
     }
 
+    new_origin = [500, 400]
+    x_scale = 500
+    y_scale = 300
+
+    image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
+
+    world_points = np.float32([
+        new_origin,
+        [new_origin[0]+x_scale, new_origin[1]],
+        [new_origin[0], new_origin[1]+y_scale],
+        [new_origin[0]+x_scale, new_origin[1]+y_scale]
+    ])
+
     print('\nCorner Points as Vectors: ')
     for k, v in im_corner_vectors.items():
         print('{}: {}, shape: {}'.format(k,v, v.shape))
@@ -45,55 +58,6 @@ def main():
              B
     '''
 
-    input_im_array = np.array(input_img)
-    output_im_array = np.zeros((2 * image_info['height'], 2 * image_info['width'], 3))
-    print(input_im_array.shape, output_im_array.shape)
-
-    vec_a = np.cross(im_corner_vectors['bl'],im_corner_vectors['ul'])
-    vec_b = np.cross(im_corner_vectors['bl'],im_corner_vectors['br'])
-    vec_c = np.cross(im_corner_vectors['br'],im_corner_vectors['ur'])
-    vec_d = np.cross(im_corner_vectors['ul'],im_corner_vectors['ur'])
-    print('Vector A: {}, shape: {}'.format(vec_a, vec_a.shape))
-    print('Vector B: {}, shape: {}'.format(vec_b, vec_b.shape))
-    print('Vector C: {}, shape: {}'.format(vec_c, vec_c.shape))
-    print('Vector D: {}, shape: {}'.format(vec_d, vec_d.shape))
-
-    ver_van_pt = np.cross(vec_a, vec_c)
-    hor_van_pt = np.cross(vec_b, vec_d)
-
-    van_line = np.cross(ver_van_pt, hor_van_pt)
-    print('Vanishing line: {}, shape: {}'.format(van_line, van_line.shape))
-
-    # Manual
-    homography = np.identity(len(van_line))
-    homography[-1,:] = van_line
-    homography = np.array([
-        [1, 0, 0],
-        [0, 1, 0],
-        [0, 0, 1]
-    ]).astype(np.float32)
-    print('Original scene warped by homography: \n{}, shape: {}'.format(homography, homography.shape))
-
-    h_inv = np.linalg.inv(homography)
-    h_tran_inv = np.transpose(np.linalg.inv(homography))
-    h_inv_tran = np.linalg.inv(np.transpose(homography))
-    print('Inverse Homography: \n{}'.format(h_inv))
-    print('Transposed Inverse Homography: \n{}'.format(h_tran_inv))
-
-    h_attempts = [homography, h_inv, h_tran_inv, h_inv_tran]
-
-    for y in range(image_info['height']):
-        for x in range(image_info['width']):
-            old_coords = [y, x, 1]
-            new_coords = np.matmul(homography, old_coords)
-
-            if x < 10 and y == 0:
-                #print('New Coords: {}, Old Coords{}'.format((int(new_coords[0]), int(new_coords[1])),(y,x)))
-                print('Setting location ({}, {}) on new image to {}'
-                    .format(int(new_coords[0]), int(new_coords[1]), input_im_array[y,x]))
-
-            output_im_array[int(new_coords[0]), int(new_coords[1])] = input_im_array[y,x]
-
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
@@ -101,10 +65,52 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    output_img = output_im_array
+    # Correspondences
+    m1 = np.zeros((len(image_points)*2, len(image_points)*2))
+    row = 0
+    for i in range(len(image_points)):
+        m1[row:row+2, :] = build_p(image_points[i], world_points[i])
+        row += 2
+    print('Shape of M1 Matrix: {}'.format(m1.shape))
+
+    m2 = np.zeros(len(image_points) * 2)
+    for ix, pt in enumerate(world_points):
+        m2[ix]   = pt[0]
+        m2[ix+4] = pt[1]
+    print(m2)
+
+    #m1_inv_t = np.linalg.inv( np.matmul( np.transpose(m1),m1 ) )
+    #m1_m2 = np.matmul( np.transpose(m1),m2 )
+    #print(m1_inv_t.shape)
+    #print(m1_m2.shape)
+    homography = np.matmul( np.linalg.inv( np.matmul(np.transpose(m1),m1) ),( np.matmul(np.transpose(m1),m2) ))
+    homography = np.append(homography, 1)
+    homography = homography.reshape(3,3)
+
+    w = input_img.shape[1]
+    h = input_img.shape[0]
+
+    output_shape = (w*2, h*2)
+    output_img = cv2.warpPerspective(
+        input_img,
+        M=homography,
+        dsize=output_shape
+    )
+
+    print('Calculated Homography: \n{}, shape: {}'.format(homography, homography.shape))
+
+    #output_img = output_im_array
     cv2.imshow('Output Image', output_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+def build_p(im_pt, wo_pt):
+    p = np.array([
+        [im_pt[0], im_pt[1], 1,        0,        0, 0, -im_pt[0]*wo_pt[0], -im_pt[1]*wo_pt[0]],
+        [       0,        0, 0, im_pt[0], im_pt[1], 1, -im_pt[0]*wo_pt[1], -im_pt[1]*wo_pt[1]]
+    ]).astype(np.float32)
+
+    return p
 
 def plot_im_edges(input_img, rect_points):
 
