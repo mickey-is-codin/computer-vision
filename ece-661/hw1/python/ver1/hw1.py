@@ -17,18 +17,26 @@ def main():
     print('Input image is a {}-channel {}x{} image'
         .format(image_info['channels'], image_info['width'], image_info['height']))
 
+    # Conduit Box
+    # im_rect_pts = {
+    #     'ul' : (182, 55),
+    #     'ur' : (316, 96),
+    #     'bl' : (154, 440),
+    #     'br' : (296, 442)
+    # }
+
     im_rect_pts = {
-        'ul' : (182, 55),
-        'ur' : (316, 96),
-        'bl' : (154, 440),
-        'br' : (296, 442)
+        'ul' : (450, 55),
+        'ur' : (760, 175),
+        'bl' : (430, 430),
+        'br' : (748, 440)
     }
 
     im_corner_vectors = {
-        'ul' : np.transpose(np.array([182, 55,  1])),
-        'ur' : np.transpose(np.array([316, 96,  1])),
-        'bl' : np.transpose(np.array([154, 440, 1])),
-        'br' : np.transpose(np.array([296, 442, 1]))
+        'ul' : np.transpose(np.array([im_rect_pts['ul'][0], im_rect_pts['ul'][1],  1])),
+        'ur' : np.transpose(np.array([im_rect_pts['ur'][0], im_rect_pts['ur'][1],  1])),
+        'bl' : np.transpose(np.array([im_rect_pts['bl'][0], im_rect_pts['bl'][1], 1])),
+        'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1], 1]))
     }
 
     print('\nCorner Points as Vectors: ')
@@ -57,21 +65,55 @@ def main():
     print('Vanishing line: {}, shape: {}'.format(van_line, van_line.shape))
 
     # Manual
-    # homography = np.identity(len(van_line))
-    # homography[-1,:] = van_line
-    # print('Homography: \n{}'.format(homography))
+    homography = np.identity(len(van_line))
+    homography[-1,:] = van_line
+
+    h_inv = np.linalg.inv(homography)
+    h_tran_inv = np.transpose(np.linalg.inv(homography))
+    h_inv_tran = np.linalg.inv(np.transpose(homography))
+
+    h_attempts = [homography, h_inv, h_tran_inv, h_inv_tran]
+
+    shear_angle  = 15
+    rotate_angle = 30
+
+    tan_phi = np.tan(shear_angle)
+
+    cos_theta = np.cos(rotate_angle)
+    sin_theta = np.sin(rotate_angle)
+
+    test_h = np.array([
+        [1, tan_phi, 0],
+        [0, 1, 0],
+        [0, 0, 1]
+    ]).astype(np.float32)
+
+    print('Test Homography: \n{}'.format(test_h))
+    # print('Calculated Homography: \n{}'.format(homography))
+    # print('Inverse: \n{}'.format(h_inv))
+    # print('Inverse of Transpose: \n{}'.format(h_inv_tran))
+    # print('Transpose of Inverse: \n{}'.format(h_tran_inv))
 
     # OpenCV Auto
+    # Note: I believe this also removes the affine transformation
     image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
-    world_points = np.float32([[0,0], [300,0], [0,300], [300,300]])
-    homography = cv2.getPerspectiveTransform(image_points, world_points)
+    world_points = np.float32([
+        [400, 400],
+        [400+400, 400],
+        [400, 400+300],
+        [400+400, 400+300]
+    ])
+    auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
+    auto_homography = cv2.findHomography(image_points, world_points)
 
-    output_shape = (input_img.shape[0], input_img.shape[1])
-    output_img = cv2.warpPerspective(
-        input_img,
-        M=homography,
-        dsize=(300,300)
-    )
+    translate_h = np.array([
+        [1, 0, 100],
+        [0, 1, 100],
+        [0, 0, 1]
+    ]).astype(np.float32)
+
+    w = input_img.shape[1]
+    h = input_img.shape[0]
 
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
@@ -79,6 +121,18 @@ def main():
     cv2.imshow('Input Image', input_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
+
+    output_shape = (w*2, h*2)
+    output_img = cv2.warpPerspective(
+        input_img,
+        M=auto_perspective,
+        dsize=output_shape
+    )
+    output_img = cv2.warpPerspective(
+        output_img,
+        M=translate_h,
+        dsize=output_shape
+    )
 
     cv2.imshow('Output Image', output_img)
     cv2.waitKey(0)
