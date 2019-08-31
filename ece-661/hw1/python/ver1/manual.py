@@ -5,10 +5,7 @@ import numpy as np
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Program to remove projective transformations from an image')
-    parser.add_argument('-o', '--output', action='store', dest='output_path', required=True, help='input file')
-    parser.add_argument('-i', '--input',  action='store', dest='input_path',  required=True, help='output file')
-    args = parser.parse_args()
+    args = get_cmd_args()
 
     print('\nRemoving distortion from {}...\n'.format(args.input_path))
 
@@ -27,36 +24,26 @@ def main():
     im_corner_vectors = {
         'ul' : np.transpose(np.array([im_rect_pts['ul'][0], im_rect_pts['ul'][1],  1])),
         'ur' : np.transpose(np.array([im_rect_pts['ur'][0], im_rect_pts['ur'][1],  1])),
-        'bl' : np.transpose(np.array([im_rect_pts['bl'][0], im_rect_pts['bl'][1], 1])),
-        'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1], 1]))
+        'bl' : np.transpose(np.array([im_rect_pts['bl'][0], im_rect_pts['bl'][1],  1])),
+        'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1],  1]))
     }
 
     new_origin = [500, 400]
-    x_scale = 500
-    y_scale = 300
+    world_x_scale = 500
+    world_y_scale = 300
 
     image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
 
     world_points = np.float32([
         new_origin,
-        [new_origin[0]+x_scale, new_origin[1]],
-        [new_origin[0], new_origin[1]+y_scale],
-        [new_origin[0]+x_scale, new_origin[1]+y_scale]
+        [new_origin[0] + world_x_scale, new_origin[1]],
+        [new_origin[0], new_origin[1] + world_y_scale],
+        [new_origin[0] + world_x_scale, new_origin[1] + world_y_scale]
     ])
 
     print('\nCorner Points as Vectors: ')
     for k, v in im_corner_vectors.items():
         print('{}: {}, shape: {}'.format(k,v, v.shape))
-
-    '''
-             D
-         -------->
-        ^         ^
-       A|         |C
-        |         |
-         -------->
-             B
-    '''
 
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
@@ -65,8 +52,16 @@ def main():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    # Correspondences
+    # Create Ax = B matrices
+    # For our purpose WORLDx = IMAGE
+    A, B = get_A_B(world_points, image_points)
 
+    homography = np.linalg.solve(A, B)
+    homography = np.append(homography, 1)
+    homography = homography.reshape(3,3)
+    print('H: ', homography)
+
+    h_inv = np.linalg.inv(homography)
 
     w = input_img.shape[1]
     h = input_img.shape[0]
@@ -74,24 +69,53 @@ def main():
     output_shape = (w*2, h*2)
     output_img = cv2.warpPerspective(
         input_img,
-        M=homography,
+        M=h_inv,
         dsize=output_shape
     )
-
-    print('Calculated Homography: \n{}, shape: {}'.format(homography, homography.shape))
 
     #output_img = output_im_array
     cv2.imshow('Output Image', output_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-def build_p(im_pt, wo_pt):
-    p = np.array([
-        [im_pt[0], im_pt[1], 1,        0,        0, 0, -im_pt[0]*wo_pt[0], -im_pt[1]*wo_pt[0]],
-        [       0,        0, 0, im_pt[0], im_pt[1], 1, -im_pt[0]*wo_pt[1], -im_pt[1]*wo_pt[1]]
-    ]).astype(np.float32)
+def get_A_B(wo_pts, im_pts):
 
-    return p
+    A = np.zeros((len(wo_pts) * 2, len(wo_pts) * 2))
+    B = np.zeros((len(wo_pts) * 2, 1))
+
+    crnr_ix = 0
+    for row_ix in np.arange(0, A.shape[0], 2):
+
+        print(row_ix)
+        A[row_ix][0] = wo_pts[crnr_ix][0]
+        A[row_ix][1] = wo_pts[crnr_ix][1]
+        A[row_ix][2] = 1
+        A[row_ix][3] = 0
+        A[row_ix][4] = 0
+        A[row_ix][5] = 0
+        A[row_ix][6] = -im_pts[crnr_ix][0]*wo_pts[crnr_ix][0]
+        A[row_ix][7] = -im_pts[crnr_ix][0]*wo_pts[crnr_ix][1]
+
+        A[row_ix+1][0] = 0
+        A[row_ix+1][1] = 0
+        A[row_ix+1][2] = 0
+        A[row_ix+1][3] = wo_pts[crnr_ix][0]
+        A[row_ix+1][4] = wo_pts[crnr_ix][1]
+        A[row_ix+1][5] = 1
+        A[row_ix+1][6] = -im_pts[crnr_ix][1]*wo_pts[crnr_ix][0]
+        A[row_ix+1][7] = -im_pts[crnr_ix][1]*wo_pts[crnr_ix][1]
+
+        B[row_ix]   = im_pts[crnr_ix][0]
+        B[row_ix+1] = im_pts[crnr_ix][1]
+
+        crnr_ix += 1
+
+    print('A shape: ', A.shape)
+    print('B shape: ', B.shape)
+    print('A: ', A)
+    print('B: ', B)
+    return A, B
+
 
 def plot_im_edges(input_img, rect_points):
 
@@ -155,6 +179,29 @@ def get_image_info(input_img):
     }
 
     return image_info
+
+def get_cmd_args():
+
+    parser = argparse.ArgumentParser(
+        description='Program to remove projective transformations from an image'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        action='store',
+        dest='output_path',
+        required=True,
+        help='input file'
+    )
+    parser.add_argument(
+        '-i', '--input',
+        action='store',
+        dest='input_path',
+        required=True,
+        help='output file'
+    )
+    args = parser.parse_args()
+
+    return args
 
 if __name__ == '__main__':
     main()
