@@ -14,6 +14,8 @@ def main():
     print('Input image is a {}-channel {}x{} image'
         .format(image_info['channels'], image_info['width'], image_info['height']))
 
+    input_im_array = np.array(input_img)
+
     im_rect_pts = {
         'ul' : (450, 55),
         'ur' : (760, 175),
@@ -66,12 +68,34 @@ def main():
     w = input_img.shape[1]
     h = input_img.shape[0]
 
-    output_shape = (w*2, h*2)
-    output_img = cv2.warpPerspective(
-        input_img,
-        M=h_inv,
-        dsize=output_shape
-    )
+    output_shape = (w*2, h*2, 3)
+    output_img = np.zeros(output_shape).astype(np.uint8)
+
+    for y in range(image_info['height']):
+        for x in range(image_info['width']):
+
+            in_pixel = input_im_array[y, x]
+
+            old_coords = np.transpose(np.array([x, y, 1]).astype(np.float32))
+            new_coords = np.matmul(h_inv, old_coords)
+
+            new_x = int(new_coords[0] / new_coords[2])
+            new_y = int(new_coords[1] / new_coords[2])
+
+            output_img[new_y, new_x] = in_pixel
+
+            if y == 0 and x < 10:
+                print('Image pixel value: {}'.format(in_pixel))
+                print('Old coords: ({},{})'.format(old_coords[0], old_coords[1]))
+                print('New coords: ({},{})'.format(new_y, new_x))
+                print('New image pixe: {}'.format(output_img[new_y,new_x]))
+
+    # Using cv.warpPerspective()
+    # output_img = cv2.warpPerspective(
+    #     input_img,
+    #     M=h_inv,
+    #     dsize=output_shape
+    # )
 
     #output_img = output_im_array
     cv2.imshow('Output Image', output_img)
