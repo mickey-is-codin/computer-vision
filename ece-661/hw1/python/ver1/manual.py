@@ -84,6 +84,8 @@ def main():
 
             output_img[new_y, new_x] = in_pixel
 
+    # SAVE IMAGE
+
     cv2.imshow('Output Image', output_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
