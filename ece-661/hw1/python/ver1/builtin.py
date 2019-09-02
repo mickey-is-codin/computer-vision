@@ -41,9 +41,6 @@ def main():
 
     image_points = np.float32([value[0:2] for key, value in im_corner_vectors.items()])
 
-    # If I were to look at the room, where would the new bounds for the rectangle be?
-    # In a perfect world I would measure the ratio of height to width on the
-    # photographed object
     world_points = np.float32([
         new_origin,
         [new_origin[0]+x_scale, new_origin[1]],

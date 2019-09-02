@@ -50,8 +50,6 @@ def main():
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
-    # Create Ax = B matrices
-    # For our purpose WORLDx = IMAGE
     A, B = get_A_B(world_points, image_points)
 
     homography = np.linalg.solve(A, B)
