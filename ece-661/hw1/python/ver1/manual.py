@@ -78,7 +78,7 @@ def main():
 
             output_img[new_y, new_x] = in_pixel
 
-    cv2.imwrite(output_path, output_img)
+    cv2.imwrite(args.output_path, output_img)
 
 def get_A_B(wo_pts, im_pts):
 

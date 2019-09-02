@@ -15,14 +15,14 @@ The assignment comes in two version of the program:
 ### Results
 **__Built-In__**
 **Before**
-![alt-text](images/before_builtin.png)
+![alt-text](images/before.jpg)
 
 **After**
-![alt-text](images/after_builtin.png)
+![alt-text](results/after_builtin.jpg)
 
 **__Manual__**
 **Before**
-![alt-text](images/before_manual.png)
+![alt-text](images/before.jpg)
 
 **After**
-![alt-text](images/after_manual.png)
+![alt-text](results/after_manual.jpg)
