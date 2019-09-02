@@ -59,10 +59,6 @@ def main():
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
-    cv2.imshow('Input Image', input_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
     w = input_img.shape[1]
     h = input_img.shape[0]
 
@@ -73,11 +69,7 @@ def main():
         dsize=output_shape
     )
 
-    # SAVE IMAGE
-
-    cv2.imshow('Output Image', output_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(args.output_path, output_img)
 
 def plot_im_edges(input_img, rect_points):
 

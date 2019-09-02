@@ -50,10 +50,6 @@ def main():
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
-    cv2.imshow('Input Image', input_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
     # Create Ax = B matrices
     # For our purpose WORLDx = IMAGE
     A, B = get_A_B(world_points, image_points)
@@ -84,11 +80,7 @@ def main():
 
             output_img[new_y, new_x] = in_pixel
 
-    # SAVE IMAGE
-
-    cv2.imshow('Output Image', output_img)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    cv2.imwrite(output_path, output_img)
 
 def get_A_B(wo_pts, im_pts):
 
