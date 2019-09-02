@@ -4,7 +4,7 @@
 
 The purpose of this program is to accept an input image that has a warped perspective and shift the perspective so as to make the image appears as if it was taken orthogonally.
 
-The assignment comes in two version of the program:
+The program comes in two versions:
  * `builtin.py`
  * `manual.py`
 

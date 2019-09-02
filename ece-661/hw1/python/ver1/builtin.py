@@ -1,21 +1,18 @@
 import cv2
 import argparse
+from tqdm import tqdm
 
 import numpy as np
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Program to remove projective transformations from an image')
-    parser.add_argument('-o', '--output', action='store', dest='output_path', required=True, help='input file')
-    parser.add_argument('-i', '--input',  action='store', dest='input_path',  required=True, help='output file')
-    args = parser.parse_args()
+    args = get_cmd_args()
 
-    print('\nRemoving distortion from {}...\n'.format(args.input_path))
+    print('\nRemoving projective distortion from {} using OpenCV builtin methods...\n'
+        .format(args.input_path))
 
     input_img = cv2.imread(args.input_path)
-    image_info = get_image_info(input_img)
-    print('Input image is a {}-channel {}x{} image'
-        .format(image_info['channels'], image_info['width'], image_info['height']))
+    image_info = get_image_info(input_img, args.verbose)
 
     im_rect_pts = {
         'ul' : (450, 55),
@@ -31,9 +28,10 @@ def main():
         'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1], 1]))
     }
 
-    print('\nCorner Points as Vectors: ')
-    for k, v in im_corner_vectors.items():
-        print('{}: {}, shape: {}'.format(k,v, v.shape))
+    if args.verbose:
+        print('\nUser-defined rectangle corner homogenous coordinates: ')
+        for k, v in im_corner_vectors.items():
+            print(k, v)
 
     new_origin = [500, 400]
     x_scale = 500
@@ -47,17 +45,18 @@ def main():
         [new_origin[0], new_origin[1]+y_scale],
         [new_origin[0]+x_scale, new_origin[1]+y_scale]
     ])
+
+    print('\nCalculating inverse homography...')
+
     auto_perspective = cv2.getPerspectiveTransform(image_points, world_points)
-    auto_homography = cv2.findHomography(image_points, world_points)
-    print('Original scene warped by homography: \n{}'.format(auto_homography))
-    print(type(auto_homography))
-    print('Shape: {}'.format(auto_homography[0].shape))
 
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
 
     w = input_img.shape[1]
     h = input_img.shape[0]
+
+    print('\nApplying inverse homography to input image...')
 
     output_shape = (w*2, h*2)
     output_img = cv2.warpPerspective(
@@ -67,6 +66,7 @@ def main():
     )
 
     cv2.imwrite(args.output_path, output_img)
+    print('\nAll done!')
 
 def plot_im_edges(input_img, rect_points):
 
@@ -120,8 +120,7 @@ def plot_im_corners(input_img, rect_points):
         thickness=3
     )
 
-
-def get_image_info(input_img):
+def get_image_info(input_img, verbose=False):
 
     image_info = {
         'width':  input_img.shape[0],
@@ -129,7 +128,40 @@ def get_image_info(input_img):
         'channels': input_img.shape[2]
     }
 
+    if verbose:
+        print('Input is a {}-channel {}x{} image'
+            .format(image_info['channels'], image_info['width'], image_info['height']))
+
     return image_info
+
+def get_cmd_args():
+
+    parser = argparse.ArgumentParser(
+        description='Program to remove projective transformations from an image'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        action='store',
+        dest='output_path',
+        required=True,
+        help='input file'
+    )
+    parser.add_argument(
+        '-i', '--input',
+        action='store',
+        dest='input_path',
+        required=True,
+        help='output file'
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        dest='verbose',
+        help='verbose output'
+    )
+    args = parser.parse_args()
+
+    return args
 
 if __name__ == '__main__':
     main()

@@ -1,5 +1,6 @@
 import cv2
 import argparse
+from tqdm import tqdm
 
 import numpy as np
 
@@ -7,12 +8,11 @@ def main():
 
     args = get_cmd_args()
 
-    print('\nRemoving distortion from {}...\n'.format(args.input_path))
+    print('\nRemoving projective distortion from {} manually...\n'
+        .format(args.input_path))
 
     input_img = cv2.imread(args.input_path)
-    image_info = get_image_info(input_img)
-    print('Input image is a {}-channel {}x{} image'
-        .format(image_info['channels'], image_info['width'], image_info['height']))
+    image_info = get_image_info(input_img, args.verbose)
 
     input_img_copy = input_img
 
@@ -30,6 +30,11 @@ def main():
         'br' : np.transpose(np.array([im_rect_pts['br'][0], im_rect_pts['br'][1],  1]))
     }
 
+    if args.verbose:
+        print('\nUser-defined rectangle corner homogenous coordinates: ')
+        for k, v in im_corner_vectors.items():
+            print(k, v)
+
     new_origin = [500, 400]
     world_x_scale = 500
     world_y_scale = 300
@@ -43,19 +48,16 @@ def main():
         [new_origin[0] + world_x_scale, new_origin[1] + world_y_scale]
     ])
 
-    print('\nCorner Points as Vectors: ')
-    for k, v in im_corner_vectors.items():
-        print('{}: {}, shape: {}'.format(k,v, v.shape))
-
     plot_im_corners(input_img, im_rect_pts)
     plot_im_edges(input_img, im_rect_pts)
+
+    print('\nCalculating inverse homography...')
 
     A, B = get_A_B(world_points, image_points)
 
     homography = np.linalg.solve(A, B)
     homography = np.append(homography, 1)
     homography = homography.reshape(3,3)
-    print('H: ', homography)
 
     h_inv = np.linalg.inv(homography)
 
@@ -65,7 +67,9 @@ def main():
     output_shape = (w*2, h*2, 3)
     output_img = np.zeros(output_shape).astype(np.uint8)
 
-    for y in range(image_info['height']):
+    print('\nApplying inverse homography to input image...')
+
+    for y in tqdm(range(image_info['height'])):
         for x in range(image_info['width']):
 
             in_pixel = input_img_copy[y, x]
@@ -79,6 +83,7 @@ def main():
             output_img[new_y, new_x] = in_pixel
 
     cv2.imwrite(args.output_path, output_img)
+    print('\nAll done!')
 
 def get_A_B(wo_pts, im_pts):
 
@@ -86,9 +91,8 @@ def get_A_B(wo_pts, im_pts):
     B = np.zeros((len(wo_pts) * 2, 1))
 
     crnr_ix = 0
-    for row_ix in np.arange(0, A.shape[0], 2):
+    for row_ix in tqdm(np.arange(0, A.shape[0], 2)):
 
-        print(row_ix)
         A[row_ix][0] = wo_pts[crnr_ix][0]
         A[row_ix][1] = wo_pts[crnr_ix][1]
         A[row_ix][2] = 1
@@ -112,10 +116,6 @@ def get_A_B(wo_pts, im_pts):
 
         crnr_ix += 1
 
-    print('A shape: ', A.shape)
-    print('B shape: ', B.shape)
-    print('A: ', A)
-    print('B: ', B)
     return A, B
 
 
@@ -172,13 +172,17 @@ def plot_im_corners(input_img, rect_points):
     )
 
 
-def get_image_info(input_img):
+def get_image_info(input_img, verbose=False):
 
     image_info = {
         'height':  input_img.shape[0],
         'width': input_img.shape[1],
         'channels': input_img.shape[2]
     }
+
+    if verbose:
+        print('Input is a {}-channel {}x{} image'
+            .format(image_info['channels'], image_info['width'], image_info['height']))
 
     return image_info
 
@@ -200,6 +204,12 @@ def get_cmd_args():
         dest='input_path',
         required=True,
         help='output file'
+    )
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        dest='verbose',
+        help='verbose output'
     )
     args = parser.parse_args()
 
