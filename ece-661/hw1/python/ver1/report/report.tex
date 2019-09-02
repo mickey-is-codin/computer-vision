@@ -1,8 +1,10 @@
 \documentclass{article}
 \usepackage{amsmath, amssymb, amsthm}
-\usepackage{newtxtext,newtxmath}
+%\usepackage{newtxtext, newtxmath}
+%\usepackage{newtx}
+\usepackage[margin=1in]{geometry}
 \usepackage{graphicx}
-\usepackage{caption}
+\usepackage[font=small,labelfont=bf]{caption}
 \usepackage{subcaption}
 
 \graphicspath{ {../images/} }
@@ -16,7 +18,7 @@
 \maketitle
 
 \section{Homogenous Coordinates}
-Similar to cartesian coordinates, homogenous coordinates are a way to represent points in a given dimension.
+Similar to cartesian coordinates, homogenous coordinates are a method to represent specific in a given dimension.
 
 \begin{figure}[hbt!]
 \centering
@@ -43,23 +45,31 @@ Similar to cartesian coordinates, homogenous coordinates are a way to represent 
 \label{fig:coords}
 \end{figure}
 
-The only practical difference between cartesian and homogenous representations for the purposes of this assignment is that homogenous coordinates contain an extra dimension value that represents vector scaling. This allows a point to be further from the origin on its component vector without altering the other coordinates.
+Note that the only practical difference between cartesian and homogenous representations (for the purposes of this assignment) is that homogenous coordinates contain an extra dimension value that represents vector scaling. This allows a point to be further from the origin on its vector passing through the origin without altering the other coordinates.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.15]{homogenous_coords}
+    \caption{Explanation of homogenous coordinates}
+\end{figure}
 
 \clearpage
+
 \section{Projective Transformations}
-When a photo is taken of a scene, the camera applies a homography to the original scene, creating a new perspective captured by the photo. An original scene \( \textbf{x} \) manipulated by a photo becomes \( \textbf{x}' \) through the application of projective homography \( H \).
+When a photo is taken of a scene, the camera applies a transformation to the original scene in the form of a matrix called the \textit{homography}, creating a new perspective captured by the photo. An original scene \( \textbf{x} \) manipulated by a camera and resulting in a photo becomes \( \textbf{x}' \) through the application of a projective homography transformation \( H \).
 
 \begin{figure}[h]
     \centering
     \( \textbf{x}' \) = \( H\textbf{x} \)
-    \caption{Homography application}
+    \caption{Homography application. \( \textbf{x} \) represents the original scene and \( \textbf{x}' \) represents what we see in a photograph taken of the scene at an angle.}
 \end{figure}
 
-This equation is notably of the form \( Ax = B \), which will allow us to solve for the homography matrix easily.
+This equation is notably of the form \( Ax = B \), which will allow us to solve for the homography matrix easily\footnotemark.
+\footnotetext{For the purposes of this assignment the Python library Numpy's \textit{linear algebra} class' \textit{solve()} method is used to compute the solution vector \( x \).}
 
-This means that in order to restore the original image's perspective, we need to determine \( H^{-1} \). Once we have \( H^{-1} \) we can apply it to every pixel location in the image and determine its location in a new image.
+In order to restore the original image's perspective we need to determine the homography matrix's inverse, \( H^{-1} \), not just the homography matrix itself. Once we have \( H^{-1} \) we can apply it to every pixel in the image to determine where it should be placed within the new image.
 
-In order for a program to apply these inverse transformations, 8 coordinates within $\mathbb{R}^2$ have to be defined. 4 representing the corners of a box within the supplied image and 4 representing the destination location of those points within the new image. We'll choose those locations as the corners of a rectangle within the image.
+In order for a program to apply these inverse transformations, 8 coordinates within $\mathbb{R}^2$ have to be defined. 4 representing the corners of a box within the supplied image and 4 representing the destination location of those points within the new image that represents the real orthogonal world view of the image. We'll choose those locations as the corners of a rectangle within the image.
 
 \begin{figure}[h]
 \centering
@@ -85,11 +95,11 @@ In order for a program to apply these inverse transformations, 8 coordinates wit
     \caption{World points}
     \label{fig:coords_sub2}
 \end{subfigure}
-\caption{Image and world point definitions}
+\caption{User-defined parameters (where a point exists within the photograph and where it should exist in a warped view of the photograph to represent a different perspective).}
 \label{fig:coords}
 \end{figure}
 
-For i in all 4 corners:
+Once these 8 points have been defined they can be placed into the \( A \) and \( B \) matrices for the \( Ax=B \) equation and used to solve for H. The ultimate equation will be an 8x8 \( A \) matrix multiplied with an 8x1 H matrix resulting in an 8x1 \( B \) matrix[Figure \ref{fig:ax_b}].
 
 \begin{figure}[h]
     \centering
@@ -116,12 +126,7 @@ For i in all 4 corners:
         \end{pmatrix}
     \end{gather}
     \caption{Homography application}
-\end{figure}
-
-\begin{figure}[hbt!]
-    \centering
-    \includegraphics[scale=0.2]{projective_transform}
-    \caption{Explanation of projective transforms}
+    \label{fig:ax_b}
 \end{figure}
 
 \end{document}
