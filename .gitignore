@@ -1,5 +1,6 @@
 bin/
 input/
+.DS_Store
 
 *.log
 *.aux
