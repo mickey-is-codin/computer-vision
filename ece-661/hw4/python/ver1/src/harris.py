@@ -17,6 +17,7 @@ def main():
     output_img = input_img.copy()
 
     gray_input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
+    gray_input_img = gray_input_img / np.max(gray_input_img)
 
     dx, dy = compute_derivatives(gray_input_img)
 
@@ -26,39 +27,55 @@ def main():
 
 def detect_corners(input_img, output_img, dx, dy):
 
-    corner_thresh = 0.3
+    corner_thresh = 200_000
+    k = 0.04
 
-    #ratios = np.array([])
+    u = 2
+    v = 2
+
+    ratios = np.array([])
+    passed_ratios = np.array([])
 
     pixel_count = 0
     for im_y in range(input_img.shape[0]):
         for im_x in range(input_img.shape[1]):
 
-            c = np.zeros((2,2))
+            e = np.zeros((2,2))
+            m = np.zeros((2,2))
 
-            c[0,0] = np.sum(np.square(dx[im_y-2:im_y+2, im_x-2:im_y+2]))
-            c[0,1] = np.sum(np.multiply(dx[im_y-2:im_y+2, im_x-2:im_y+2], dy[im_y-2:im_y+2, im_x-2:im_y+2]))
-            c[1,0] = c[0,1]
-            c[1,1] = np.sum(np.square(dy[im_y-2:im_y+2, im_x-2:im_y+2]))
+            window_sum = np.sum(input_img[im_y-v:im_y+v, im_x-u:im_x+u])
 
-            det_c   = (c[0,0] * c[1,1]) - (c[0,1] * c[1,0])
-            trace_c = c[0,0] + c[1,1]
+            m[0,0] = dx[im_y,im_x]
+            m[0,1] = dx[im_y,im_x] * dy[im_y,im_x]
+            m[1,0] = m[0,1]
+            m[1,1] = dy[im_y, im_x]
 
-            if np.sum(c) > 0:
-                ratio = np.abs(det_c / (trace_c ** 2))
-                #ratios = np.append(ratios, ratio)
+            m = m * window_sum
 
-                if (ratio > corner_thresh):
-                    output_img[im_y, im_x] = [0, 0, 255]
+            # e = np.matmul(np.array([u, v]), m)
+            # e = np.matmul(e, np.array(np.transpose([u, v])))
+
+            if np.sum(m) > 0:
+                det_m = (m[0,0] * m[1,1]) - (m[0,1] * m[1,0])
+                tr_m  = m[0,0] + m[1,1]
+
+                r = np.abs(det_m - k * (tr_m**2))
+                ratios = np.append(ratios, r)
+
+                if r > corner_thresh:
+                    passed_ratios = np.append(passed_ratios, r)
+
+                    # Draw circle here instead
+                    output_img[im_y, im_x] = [0,0,255]
 
             pixel_count += 1
 
-    # print(np.mean(ratios))
-    # print(np.max(ratios))
-    # print(np.min(ratios))
-    # print(np.percentile(ratios, 99))
-    # print(np.std(ratios))
-
+    print(np.min(ratios))
+    print(np.max(ratios))
+    print(np.mean(ratios))
+    print(np.std(ratios))
+    print(np.percentile(ratios, 99))
+    print('Num corners: {}'.format(len(passed_ratios)))
 
 def compute_derivatives(img):
 
