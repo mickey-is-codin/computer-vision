@@ -66,7 +66,14 @@ def detect_corners(input_img, output_img, dx, dy):
                     passed_ratios = np.append(passed_ratios, r)
 
                     # Draw circle here instead
-                    output_img[im_y, im_x] = [0,0,255]
+                    cv2.circle(
+                        output_img,
+                        (im_x, im_y),
+                        2,
+                        (0,0,255),
+                        1
+                    )
+                    #output_img[im_y, im_x] = [0,0,255]
 
             pixel_count += 1
 
