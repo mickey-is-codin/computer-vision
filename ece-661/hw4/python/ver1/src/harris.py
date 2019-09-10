@@ -27,7 +27,7 @@ def main():
 
 def detect_corners(input_img, output_img, dx, dy):
 
-    corner_thresh = 200_000
+    corner_thresh = 20_000
     k = 0.04
 
     u = 2
@@ -43,7 +43,8 @@ def detect_corners(input_img, output_img, dx, dy):
             e = np.zeros((2,2))
             m = np.zeros((2,2))
 
-            window_sum = np.sum(input_img[im_y-v:im_y+v, im_x-u:im_x+u])
+            #window_sum = np.sum(input_img[im_y-v:im_y+v, im_x-u:im_x+u])
+            window_sum = 1
 
             m[0,0] = dx[im_y,im_x]
             m[0,1] = dx[im_y,im_x] * dy[im_y,im_x]
