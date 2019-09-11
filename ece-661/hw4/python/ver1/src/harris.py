@@ -7,6 +7,8 @@ import cv2
 
 import numpy as np
 
+from tqdm import tqdm
+
 def main():
 
     print('Detecting corners in image...')
@@ -17,73 +19,55 @@ def main():
     output_img = input_img.copy()
 
     gray_input_img = cv2.cvtColor(input_img, cv2.COLOR_BGR2GRAY)
-    gray_input_img = gray_input_img / np.max(gray_input_img)
+    gray_input_img = np.float32(gray_input_img)
+    #gray_input_img = gray_input_img / np.max(gray_input_img)
 
     dx, dy = compute_derivatives(gray_input_img)
 
     detect_corners(gray_input_img, output_img, dx, dy)
 
-    show_results(gray_input_img, output_img)
+    show_results(input_img, output_img)
 
 def detect_corners(input_img, output_img, dx, dy):
 
-    corner_thresh = 20_000
+    harris_mask = np.zeros_like(input_img)
+
+    dx_2  = np.square(dx)
+    dx_dy = np.multiply(dx, dy)
+    dy_2  = np.square(dy)
+
     k = 0.04
 
-    u = 2
-    v = 2
+    block_size = 2
 
-    ratios = np.array([])
-    passed_ratios = np.array([])
+    for im_y in tqdm(range(block_size, input_img.shape[0])):
+        for im_x in range(block_size, input_img.shape[1]):
 
-    pixel_count = 0
-    for im_y in range(input_img.shape[0]):
-        for im_x in range(input_img.shape[1]):
-
-            e = np.zeros((2,2))
             m = np.zeros((2,2))
 
-            #window_sum = np.sum(input_img[im_y-v:im_y+v, im_x-u:im_x+u])
-            window_sum = 1
+            #window_sum = np.sum(input_img[im_y-block_size:im_y+block_size, im_x-block_size:im_x+block_size])
+            #window_sum = block_size*block_size
+            #window = np.ones((block_size,block_size))
 
-            m[0,0] = dx[im_y,im_x]
-            m[0,1] = dx[im_y,im_x] * dy[im_y,im_x]
-            m[1,0] = m[0,1]
-            m[1,1] = dy[im_y, im_x]
+            #print(dx_2[im_y-v:im_y+v+1,im_x-u:im_x+u+1])
 
-            m = m * window_sum
+            m[0,0] = np.sum(dx_2[im_y-block_size:im_y+block_size+1,im_x-block_size:im_x+block_size+1])
+            m[0,1] = np.sum(dx_dy[im_y-block_size:im_y+block_size+1,im_x-block_size:im_x+block_size+1])
+            m[1,0] = np.sum(m[0,1])
+            m[1,1] = np.sum(dy_2[im_y-block_size:im_y+block_size+1,im_x-block_size:im_x+block_size+1])
 
-            # e = np.matmul(np.array([u, v]), m)
-            # e = np.matmul(e, np.array(np.transpose([u, v])))
+            det_m = (m[0,0] * m[1,1]) - (m[0,1] * m[1,0])
+            tr_m  = m[0,0] + m[1,1]
 
-            if np.sum(m) > 0:
-                det_m = (m[0,0] * m[1,1]) - (m[0,1] * m[1,0])
-                tr_m  = m[0,0] + m[1,1]
+            r = np.abs(det_m - k * (tr_m**2))
 
-                r = np.abs(det_m - k * (tr_m**2))
-                ratios = np.append(ratios, r)
+            harris_mask[im_y, im_x] = r
 
-                if r > corner_thresh:
-                    passed_ratios = np.append(passed_ratios, r)
+    harris_mask = cv2.dilate(harris_mask, None)
 
-                    # Draw circle here instead
-                    cv2.circle(
-                        output_img,
-                        (im_x, im_y),
-                        2,
-                        (0,0,255),
-                        1
-                    )
-                    #output_img[im_y, im_x] = [0,0,255]
-
-            pixel_count += 1
-
-    print(np.min(ratios))
-    print(np.max(ratios))
-    print(np.mean(ratios))
-    print(np.std(ratios))
-    print(np.percentile(ratios, 99))
-    print('Num corners: {}'.format(len(passed_ratios)))
+    corner_thresh = np.percentile(harris_mask, 97)
+    corner_mask = harris_mask > corner_thresh
+    output_img[corner_mask] = [0,0,255]
 
 def compute_derivatives(img):
 
@@ -93,14 +77,14 @@ def compute_derivatives(img):
         img,
         ddepth=-1,
         dx=1, dy=0,
-        ksize=5
+        ksize=3
     )
 
     der_y = cv2.Sobel(
         img,
         ddepth=-1,
         dx=0, dy=1,
-        ksize=5
+        ksize=3
     )
 
     return der_x, der_y
