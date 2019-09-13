@@ -5,6 +5,6 @@ This repository is a collection of computer vision algorithms that I've learned 
 My goal is to use the repository as an assessment ground for algorithms and for storing projects that delve into computer vision without explicitly being deep learning projects.
 
 ## Current Projects:
- * harris-corners
- * projective-rectification
+ * **`harris-corners`**
+ * **`projective-rectification`**
 
