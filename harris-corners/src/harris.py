@@ -26,7 +26,7 @@ def main():
 
     detect_corners(gray_input_img, output_img, dx, dy)
 
-    show_results(input_img, output_img)
+    cv2.imwrite(args.output_path, output_img)
 
 def detect_corners(input_img, output_img, dx, dy):
 
@@ -88,13 +88,6 @@ def compute_derivatives(img):
     )
 
     return der_x, der_y
-
-def show_results(input_img, output_img):
-    cv2.imshow("Input Image", input_img)
-    cv2.waitKey(0)
-
-    cv2.imshow("Output Image", output_img)
-    cv2.waitKey(0)
 
 def read_cmd_args():
 

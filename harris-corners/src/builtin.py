@@ -31,13 +31,7 @@ def main():
     harris_mask = cv2.dilate(harris_mask, None)
     output_img[harris_mask > 0.01 * harris_mask.max()] = [0,0,255]
 
-    print(np.min(harris_mask))
-    print(np.max(harris_mask))
-    print(np.mean(harris_mask))
-    print(np.std(harris_mask))
-    print(np.percentile(harris_mask, 99))
-
-    show_results(gray_input_img, output_img)
+    cv2.imwrite(args.output_path, output_img)
 
 def show_results(input_img, output_img):
     cv2.imshow("Input Image", input_img)
