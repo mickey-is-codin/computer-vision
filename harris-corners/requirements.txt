@@ -1,0 +1,5 @@
+# REQUIREMENTS for fsa aggregate data reading programs
+
+numpy
+tqdm
+opencv

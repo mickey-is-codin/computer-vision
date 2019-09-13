@@ -8,7 +8,7 @@ This project was created as an alternative to the easy-to-use, fast, and efficie
 `harris.py` was built for the purpose of this project and represents a manual creation and application of the harris corner detection algorithm written iteratively. `builtin.py`, on the other hand, accomplishes the same tasks, but does so using OpenCV's builtin `cornerHarris()` function.
 
 ## Prerequisites/Installation
-
+`pip install -r requirements.txt`
 
 ## Running the Program
 
