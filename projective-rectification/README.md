@@ -1,4 +1,4 @@
-# Harris Corner Detection
+# Projective Rectification
 
 ## Prerequisites/Installation
 
