@@ -1,1 +1,110 @@
-report goes here
+\documentclass{article}
+\usepackage{amsmath, amssymb, amsthm}
+%\usepackage{newtxtext, newtxmath}
+%\usepackage{newtx}
+\usepackage[margin=0.5in]{geometry}
+\usepackage{graphicx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+
+\graphicspath{ {../images/} }
+
+\title{Harris Corner Detection}
+\author{Mickey Smith}
+\date{September 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Background}
+
+Corners are one of the most important features that can be detected within an image. Similar to an edge detector, methods exist for detecting the regions within an image where a corner is likely to exist. Also similarly to an edge detector, an important characteristic of the image used to gain information to predict corners is the set of directional brightness gradients within the image.
+
+\section{Corner Detection Algorithm}
+
+The Harris Corner Detection Algorithm can be split into the following computation steps:
+
+\begin{enumerate}
+  \item Compute the x and y derivatives of the image using a Sobel operator
+  \item Iterate over the image using a window of size (\( u \), \( v \))
+  \item At each window location compute \( dx^{2} \), \( dy^{2} \), and \( dxdy \)
+  \item Create a \( u \) x \( v \) matrix, \( M \), containing the sum of each derivative product within the window
+  \item Using the eigenvalues of the matrix, \( \lambda_{1} \) and \( \lambda_{2} \), determine if a region contains a corner.
+\end{enumerate}
+
+\subsection{Image Derivatives}
+The derivative of an image can be taken extremely quickly and simply by convolving the image with a Sobel edge-detection operator, to determine the gradient of the image in a specified direction. The Sobel operators used to determine \( dx \) and \( dy \) are shown in figure \ref{fig:sobel}
+
+\begin{figure}[h]
+\centering
+\begin{subfigure}{.3\textwidth}
+    \begin{bmatrix}
+        -1 && 0 && 1 \\
+        -2 && 0 && 2 \\
+        -1 && 0 && 1
+    \end{bmatrix}
+    \caption{\( dx \) Sobel Operator}
+    \label{fig:sobel_sub1}
+\end{subfigure}
+\begin{subfigure}{.3\textwidth}
+    \begin{bmatrix}
+        -1 && -2 && -1 \\
+         0 &&  0 &&  0 \\
+         1 &&  2 &&  1
+    \end{bmatrix}
+    \caption{\( dy \) Sobel Operator}
+    \label{fig:sobel_sub2}
+\end{subfigure}
+\caption{Sobel Operators}
+\label{fig:sobel}
+\end{figure}
+
+\subsection{Corner Detection/\( M \) Calculation}
+Now the hunt for corners begins. Using a window of size (\( u \), \( v \)), and iterating through the image, at each point it is possible to create an \( M \) matrix that is specific to each window. Equation set \ref{eq:m_matrix} demonstrates how to derive M for an image. In equation set \ref{eq:m_matrix}, \( I_{x} \) and \( I_{y} \) represent \( dx \) and \( dy \), respectively.
+
+\clearpage
+
+\begin{figure}[t]
+\centering
+
+\( E(u,v) = $\sum_{x,y}^{u,v}w(x,y)[I(x + u, y + v) - I(x,y)]^{2} \)
+
+\bigskip
+Using Taylor Expansion:
+\bigskip
+
+\( E(u,v) $\approx $\sum_{x,y}^{u,v}[I(x,y) + uI_{x} + vI_{y} - I(x,y)]^{2} \)
+
+\bigskip
+Cancelling and distributing:
+\bigskip
+
+\( E(u,v) $\approx $\sum_{x,y}^{u,v}[u^{2}I_{x}^{2} + 2uvI_{x}I_{y} + vI_{y}^{2}] \)
+
+\bigskip
+Using the window function and grouping into a matrix, we can get \( M \):
+\bigskip
+
+\(
+M = w(x,y)
+\begin{bmatrix}
+    I_{x}^{2}  && I_{x}I_{y} \\
+    I_{x}I_{y} && I_{y}^2
+\end{bmatrix}
+\)
+
+\caption{\(M \) matrix calculation}
+\label{eq:m_matrix}
+\end{figure}
+
+\subsection{Thresholding Image}
+Once \( M \) is determined for an image, it is still necessary to determine whether or not the region contains a corner. The eigenvalues of \( M \) are critical for this. Since we know that \( det(M) = \lambda_{1}\lambda_{2} \), and that \( trace(M) = \lambda_{1} + \lambda_{2} \), we can just take use the determinant and trace of M's relationship to create a score for a given window (equation \ref{eq:r}).
+
+\begin{figure}[h]
+\( r = det(M) - k(trace(M))^{2} \)
+\end{figure}
+
+Here, \( k \), is an empirically determined constant that is between 0.04 and 0.06. If \( r \) is above some threshold then, we positively identify a pixel that contains a corner. For the purpose of the programs created here, the 99th percentile is used as the value to threshold \( r \), so that 1\% of pixels in the image contain a corner. This is empirically determined and different for other applications.
+
+\end{document}
